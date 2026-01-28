@@ -6,15 +6,18 @@ public class DragAndThrow : MonoBehaviour
     public float minForce = 5f;
     public float maxForce = 12f;
     public float chargeTime = 1.2f;
-
     public float sideSensitivity = 0.005f;
     public float maxSideOffset = 0.5f;
+
+    [Header("Power Bar Settings")]
+    [Range(0.1f, 3f)]
+    public float powerSensitivity = 1.5f;
+    public AnimationCurve powerCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
 
     private float holdTime;
     private float sideOffset;
     private bool isCharging;
     private bool isCurrent;
-
     private Vector3 startPos;
     private Rigidbody rb;
     private Camera cam;
@@ -35,17 +38,13 @@ public class DragAndThrow : MonoBehaviour
         holdTime = 0f;
         sideOffset = 0f;
         startPos = transform.position;
-
         GameManager.Instance.SetPower(0f);
     }
 
     void Update()
     {
         if (!isCurrent) return;
-
-        if (EventSystem.current != null &&
-            EventSystem.current.IsPointerOverGameObject())
-            return;
+        if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject()) return;
 
         HandleMouse();
         HandleTouch();
@@ -76,7 +75,6 @@ public class DragAndThrow : MonoBehaviour
     void HandleTouch()
     {
         if (Input.touchCount == 0) return;
-
         Touch touch = Input.GetTouch(0);
 
         if (touch.phase == TouchPhase.Began && IsPointerOnThisGlass(touch.position))
@@ -111,38 +109,38 @@ public class DragAndThrow : MonoBehaviour
     {
         sideOffset += deltaX * sideSensitivity;
         sideOffset = Mathf.Clamp(sideOffset, -maxSideOffset, maxSideOffset);
-
         Vector3 pos = startPos;
         pos.x += sideOffset;
         transform.position = pos;
     }
 
+    // GÜNCELLENMİŞ POWER BAR KONTROLÜ
     void UpdatePower()
     {
         float raw = Mathf.Clamp01(holdTime / chargeTime);
-        float smooth = Mathf.SmoothStep(0f, 1f, raw);
-        GameManager.Instance.SetPower(smooth);
+        float smooth = powerCurve.Evaluate(raw);
+        float finalPower = Mathf.Pow(smooth, powerSensitivity);
+        GameManager.Instance.SetPower(finalPower);
     }
 
     void Throw()
     {
         isCharging = false;
         isCurrent = false;
-
         rb.isKinematic = false;
-
         GetComponent<Glass>().canMerge = true;
 
         float raw = Mathf.Clamp01(holdTime / chargeTime);
-        float t = Mathf.SmoothStep(0f, 1f, raw);
-        float baseForce = Mathf.Lerp(minForce, maxForce, t);
+        float t = powerCurve.Evaluate(raw);
+        t = Mathf.Pow(t, powerSensitivity);
+        float finalForce = Mathf.Lerp(minForce, maxForce, t);
 
-        // Ağırlığa göre kuvvet ayarlaması
-        float massFactor = rb.mass / 5f; // 5, referans ağırlık
-        float finalForce = baseForce / massFactor;
+        Vector3 dir = new Vector3(sideOffset, 0.15f, 1f).normalized;
+        rb.linearVelocity = Vector3.zero;
+        rb.angularVelocity = Vector3.zero;
 
-        Vector3 dir = new Vector3(sideOffset, 0f, 1f).normalized;
-        rb.AddForce(dir * finalForce, ForceMode.Impulse);
+        float weight = GetComponent<Glass>().throwWeight;
+        rb.linearVelocity = dir * finalForce * weight;
 
         GameManager.Instance.StopChargeSound();
         GameManager.Instance.SetPower(0f);

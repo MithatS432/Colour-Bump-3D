@@ -13,31 +13,33 @@ public class MergeManager : MonoBehaviour
 
         if (other == null) return;
         if (!self.canMerge || !other.canMerge) return;
-        if (other.level != self.level) return;
+        if (self.level != other.level) return;
 
         if (GetInstanceID() > collision.gameObject.GetInstanceID())
             return;
 
         merged = true;
 
-        Vector3 spawnPos =
-            (transform.position + collision.transform.position) / 2f;
+        Vector3 spawnPos = (transform.position + collision.transform.position) / 2f;
 
         GameManager.Instance.PlayMergeSound();
+
         GameManager.Instance.PlayMergeVFX(spawnPos);
+
+        int nextLevel = self.level + 1;
+        GameObject nextGlass = GameManager.Instance.GetNextGlass(nextLevel);
 
         Destroy(other.gameObject);
         Destroy(gameObject);
 
-        GameObject next =
-            GameManager.Instance.GetNextGlass(self.level);
-
-        if (next != null)
+        if (nextGlass != null)
         {
-            GameObject newGlass =
-                Instantiate(next, spawnPos, Quaternion.identity);
-
-            newGlass.GetComponent<Glass>().canMerge = false;
+            GameObject newGlass = Instantiate(nextGlass, spawnPos, Quaternion.identity);
+            Rigidbody rb = newGlass.GetComponent<Rigidbody>();
+            if (rb != null)
+            {
+                rb.AddForce(Vector3.up * 2f, ForceMode.Impulse);
+            }
         }
     }
 }

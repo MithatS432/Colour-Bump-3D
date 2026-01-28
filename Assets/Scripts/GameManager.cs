@@ -36,20 +36,14 @@ public class GameManager : MonoBehaviour
         SpawnRandomGlass();
     }
 
-    // ---------- SPAWN ----------
+    // SPAWN
     public void SpawnRandomGlass()
     {
         if (!canSpawn) return;
-
         canSpawn = false;
 
         int randomIndex = Random.Range(0, glasses.Length);
-        GameObject glass = Instantiate(
-            glasses[randomIndex],
-            glassSpawnPoint.position,
-            Quaternion.identity
-        );
-
+        GameObject glass = Instantiate(glasses[randomIndex], glassSpawnPoint.position, Quaternion.identity);
         glass.GetComponent<DragAndThrow>().SetAsCurrent();
     }
 
@@ -59,28 +53,25 @@ public class GameManager : MonoBehaviour
         SpawnRandomGlass();
     }
 
-    public GameObject GetNextGlass(int currentLevel)
+    public GameObject GetNextGlass(int level)
     {
-        int index = currentLevel;
-        if (index < glasses.Length)
-            return glasses[index];
-
-        return null;
+        int index = level - 1;
+        if (index < 0 || index >= glasses.Length) return null;
+        return glasses[index];
     }
 
-    // ---------- UI ----------
+    // UI
     public void SetPower(float value)
     {
         if (powerBar != null)
             powerBar.fillAmount = value;
     }
 
-    // ---------- AUDIO ----------
+    // AUDIO
     public void PlayChargeSound()
     {
         if (sfxSource == null || chargeLoopClip == null) return;
         if (sfxSource.isPlaying) return;
-
         sfxSource.clip = chargeLoopClip;
         sfxSource.loop = true;
         sfxSource.Play();
@@ -104,19 +95,18 @@ public class GameManager : MonoBehaviour
         if (sfxOneShotSource == null || mergeClip == null) return;
         sfxOneShotSource.PlayOneShot(mergeClip);
     }
+
     public void PlayBreakSound(Vector3 position)
     {
         if (breakClip == null) return;
         AudioSource.PlayClipAtPoint(breakClip, position);
     }
 
-    // ---------- VFX ----------
+    // VFX
     public void PlayMergeVFX(Vector3 position)
     {
         if (mergeVFX == null) return;
-
-        ParticleSystem vfx =
-            Instantiate(mergeVFX, position, Quaternion.identity);
+        ParticleSystem vfx = Instantiate(mergeVFX, position, Quaternion.identity);
         Destroy(vfx.gameObject, 2f);
     }
 }

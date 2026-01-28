@@ -4,7 +4,6 @@ public class GlassCollision : MonoBehaviour
 {
     private float lastHitTime;
     public float hitCooldown = 0.15f;
-
     private Rigidbody rb;
 
     void Start()
@@ -28,9 +27,8 @@ public class GlassCollision : MonoBehaviour
         if (rb.mass > otherRb.mass)
         {
             Vector3 pushDir = (otherRb.position - rb.position).normalized;
-
-            float pushPower = Mathf.Clamp((rb.mass / otherRb.mass) * 0.3f, 0.2f, 0.6f);
-            otherRb.AddForce(pushDir * pushPower, ForceMode.Impulse);
+            float pushPower = Mathf.Clamp((rb.mass / otherRb.mass) * 0.15f, 0.1f, 0.3f);
+            otherRb.AddForce(pushDir * pushPower, ForceMode.VelocityChange);
         }
     }
 

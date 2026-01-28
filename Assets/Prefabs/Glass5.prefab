@@ -102,8 +102,8 @@ Rigidbody:
   m_GameObject: {fileID: 5880919643556925205}
   serializedVersion: 4
   m_Mass: 8
-  m_Drag: 0
-  m_AngularDrag: 0.5
+  m_Drag: 0.3
+  m_AngularDrag: 1
   m_CenterOfMass: {x: 0, y: 0, z: 0}
   m_InertiaTensor: {x: 1, y: 1, z: 1}
   m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
@@ -252,6 +252,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   level: 5
   canMerge: 0
+  throwWeight: 1.213
 --- !u!114 &-8643199257427001078
 MonoBehaviour:
   m_ObjectHideFlags: 0
