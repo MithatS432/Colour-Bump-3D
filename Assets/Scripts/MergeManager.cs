@@ -2,9 +2,9 @@ using UnityEngine;
 
 public class MergeManager : MonoBehaviour
 {
-    private bool merged = false;
+    private bool merged;
 
-    private void OnCollisionEnter(Collision collision)
+    void OnCollisionEnter(Collision collision)
     {
         if (merged) return;
 
@@ -15,33 +15,29 @@ public class MergeManager : MonoBehaviour
         if (!self.canMerge || !other.canMerge) return;
         if (self.level != other.level) return;
 
-        if (GetInstanceID() > collision.gameObject.GetInstanceID())
-            return;
+        if (GetInstanceID() > other.GetInstanceID()) return;
 
         merged = true;
 
-        Vector3 spawnPos = (transform.position + collision.transform.position) / 2f;
+        Vector3 pos = (transform.position + other.transform.position) / 2f;
 
         GameManager.Instance.AddScore(self.level);
+        MissionManager.Instance.OnMerge();
+        MissionManager.Instance.OnMergeColor(self.color);
         GameManager.Instance.PlayMergeSound();
-        GameManager.Instance.PlayMergeVFX(spawnPos);
+        GameManager.Instance.PlayMergeVFX(pos);
 
-        int nextLevel = self.level + 1;
-        GameObject nextGlass = GameManager.Instance.GetNextGlass(nextLevel);
+        GameObject next = GameManager.Instance.GetNextGlass(self.level + 1);
 
         Destroy(other.gameObject);
         Destroy(gameObject);
 
-        if (nextGlass != null)
+        if (next != null)
         {
-            Rigidbody rb = Instantiate(
-                nextGlass,
-                spawnPos,
-                Quaternion.identity
-            ).GetComponent<Rigidbody>();
+            GameObject g = Instantiate(next, pos, Quaternion.identity);
+            Glass glass = g.GetComponent<Glass>();
+            glass.canMerge = false;
 
-            if (rb != null)
-                rb.AddForce(Vector3.up * 2f, ForceMode.Impulse);
         }
     }
 }

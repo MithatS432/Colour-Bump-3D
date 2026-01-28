@@ -16,15 +16,15 @@ public class GameManager : MonoBehaviour
     public TextMeshProUGUI scoreText;
 
     [Header("Health UI")]
-    public Image[] healthBars;              // 3 Image
-    public Sprite fullHealthSprite;         // ❤️
-    public Sprite emptyHealthSprite;        // 💀
+    public Image[] healthBars;
+    public Sprite fullHealthSprite;
+    public Sprite emptyHealthSprite;
 
     [Header("Game Values")]
-    public int moveCount = 15;
+    public int moveCount = 20;
     public int health = 3;
     public int scoreCount = 0;
-    public bool IsGameOver { get; private set; } = false;
+    public bool IsGameOver { get; private set; }
 
     [Header("Score Settings")]
     public int[] scorePerLevel;
@@ -39,10 +39,9 @@ public class GameManager : MonoBehaviour
     public AudioClip winClip;
     public AudioClip loseClip;
 
-
     [Header("VFX")]
     public ParticleSystem[] mergeVFXList;
-    private int currentVfxIndex = 0;
+    private int currentVfxIndex;
 
     private bool canSpawn = true;
 
@@ -61,16 +60,11 @@ public class GameManager : MonoBehaviour
     // ================= SPAWN =================
     public void SpawnRandomGlass()
     {
-        if (!canSpawn) return;
+        if (!canSpawn || IsGameOver) return;
         canSpawn = false;
 
-        int randomIndex = Random.Range(0, glasses.Length);
-        GameObject glass = Instantiate(
-            glasses[randomIndex],
-            glassSpawnPoint.position,
-            Quaternion.identity
-        );
-
+        int index = Random.Range(0, glasses.Length);
+        GameObject glass = Instantiate(glasses[index], glassSpawnPoint.position, Quaternion.identity);
         glass.GetComponent<DragAndThrow>().SetAsCurrent();
     }
 
@@ -90,58 +84,74 @@ public class GameManager : MonoBehaviour
     // ================= UI =================
     public void SetPower(float value)
     {
-        if (powerBar != null)
-            powerBar.fillAmount = value;
+        powerBar.fillAmount = value;
     }
+
     public void UpdateUI()
     {
-        scoreText.text = "Score:" + scoreCount.ToString();
+        scoreText.text = "Score: " + scoreCount;
         moveLeftText.text = moveCount.ToString();
 
         for (int i = 0; i < healthBars.Length; i++)
         {
-            int index = healthBars.Length - 1 - i;
-
-            if (i < health)
-                healthBars[index].sprite = fullHealthSprite;
-            else
-                healthBars[index].sprite = emptyHealthSprite;
+            int idx = healthBars.Length - 1 - i;
+            healthBars[idx].sprite = i < health ? fullHealthSprite : emptyHealthSprite;
         }
     }
 
+    // ================= GAME FLOW =================
+    public void WinGame()
+    {
+        if (IsGameOver) return;
 
-    // ================= GAME LOGIC =================
+        IsGameOver = true;
+        sfxSource.PlayOneShot(winClip);
+        Invoke(nameof(RestartGame), 2f);
+    }
+
     public void UseMove()
     {
+        if (IsGameOver) return;
+
         moveCount--;
         UpdateUI();
 
+        if (MissionManager.Instance.MissionCompleted) return;
+
         if (moveCount <= 0)
-        {
-            sfxSource.PlayOneShot(loseClip);
-            IsGameOver = true;
-            Invoke("RestartGame", 2f);
-        }
+            LoseGame();
     }
 
     public void OnGlassBroken()
     {
+        if (IsGameOver) return;
+
         health--;
         UpdateUI();
 
+        if (MissionManager.Instance.MissionCompleted) return;
+
         if (health <= 0)
-        {
-            sfxSource.PlayOneShot(loseClip);
-            IsGameOver = true;
-            Invoke("RestartGame", 2f);
-        }
+            LoseGame();
+    }
+
+    void LoseGame()
+    {
+        IsGameOver = true;
+        sfxSource.PlayOneShot(loseClip);
+        Invoke(nameof(RestartGame), 2f);
     }
 
     public void AddScore(int level)
     {
+        if (level - 1 < 0 || level - 1 >= scorePerLevel.Length)
+            return;
+
         int gained = scorePerLevel[level - 1];
         scoreCount += gained;
         UpdateUI();
+
+        MissionManager.Instance.OnScoreChanged(scoreCount);
     }
 
     void RestartGame()
@@ -149,7 +159,32 @@ public class GameManager : MonoBehaviour
         UnityEngine.SceneManagement.SceneManager.LoadScene(0);
     }
 
-    // ================= AUDIO =================
+    // ================= AUDIO & VFX =================
+    public void PlayMergeSound()
+    {
+        sfxOneShotSource.PlayOneShot(mergeClip);
+    }
+
+    public void PlayMergeVFX(Vector3 pos)
+    {
+        if (mergeVFXList.Length == 0) return;
+
+        ParticleSystem vfx = Instantiate(mergeVFXList[currentVfxIndex], pos, Quaternion.identity);
+        Destroy(vfx.gameObject, 2f);
+
+        currentVfxIndex = (currentVfxIndex + 1) % mergeVFXList.Length;
+    }
+
+    public void PlayHitSound()
+    {
+        sfxSource.PlayOneShot(hitClip);
+    }
+
+    public void PlayBreakSound(Vector3 pos)
+    {
+        AudioSource.PlayClipAtPoint(breakClip, pos);
+    }
+
     public void PlayChargeSound()
     {
         if (sfxSource == null || chargeLoopClip == null) return;
@@ -163,40 +198,9 @@ public class GameManager : MonoBehaviour
     public void StopChargeSound()
     {
         if (sfxSource == null) return;
+
         sfxSource.Stop();
         sfxSource.loop = false;
-    }
-
-    public void PlayHitSound()
-    {
-        if (sfxSource == null || hitClip == null) return;
-        sfxSource.PlayOneShot(hitClip);
-    }
-
-    public void PlayMergeSound()
-    {
-        if (sfxOneShotSource == null || mergeClip == null) return;
-        sfxOneShotSource.PlayOneShot(mergeClip);
-    }
-
-    public void PlayBreakSound(Vector3 position)
-    {
-        if (breakClip == null) return;
-        AudioSource.PlayClipAtPoint(breakClip, position);
-    }
-
-    public void PlayMergeVFX(Vector3 position)
-    {
-        if (mergeVFXList == null || mergeVFXList.Length == 0) return;
-
-        ParticleSystem vfxPrefab = mergeVFXList[currentVfxIndex];
-        ParticleSystem vfx = Instantiate(vfxPrefab, position, Quaternion.identity);
-        Destroy(vfx.gameObject, 2f);
-
-        currentVfxIndex++;
-
-        if (currentVfxIndex >= mergeVFXList.Length)
-            currentVfxIndex = 0;
     }
 
 }

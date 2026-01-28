@@ -5,13 +5,13 @@ public class MissionManager : MonoBehaviour
 {
     public static MissionManager Instance;
 
-    [Header("UI")]
     public TextMeshProUGUI missionText;
+    public Mission[] missions;
 
-    [Header("Missions")]
-    public string[] missions;
+    private Mission currentMission;
+    private int progress;
 
-    private string currentMission;
+    public bool MissionCompleted { get; private set; }
 
     void Awake()
     {
@@ -20,23 +20,66 @@ public class MissionManager : MonoBehaviour
 
     void Start()
     {
-        GenerateNewMission();
+        StartMission();
     }
 
-    public void GenerateNewMission()
+    void StartMission()
     {
-        int randomIndex = Random.Range(0, missions.Length);
-        currentMission = missions[randomIndex];
-        missionText.text = currentMission;
+        MissionCompleted = false;
+        progress = 0;
+
+        if (missions == null || missions.Length == 0)
+        {
+            missionText.text = "No missions";
+            return;
+        }
+
+        currentMission = missions[Random.Range(0, missions.Length)];
+        missionText.text = currentMission.description;
     }
 
-    public void OnMissionCompleted()
+
+    // ===== SCORE =====
+    public void OnScoreChanged(int totalScore)
     {
-        GenerateNewMission();
+        if (MissionCompleted) return;
+        if (currentMission.type != MissionType.Score) return;
+
+        if (totalScore >= currentMission.targetValue)
+            CompleteMission();
     }
 
-    public void OnMissionFailed()
+    // ===== MERGE =====
+    public void OnMerge()
     {
-        GenerateNewMission();
+        if (MissionCompleted) return;
+
+        if (currentMission.type != MissionType.MergeAny)
+            return;
+
+        progress++;
+
+        if (progress >= currentMission.targetValue)
+            CompleteMission();
+    }
+    public void OnMergeColor(GlassColor color)
+    {
+        if (MissionCompleted) return;
+
+        if (currentMission.type != MissionType.MergeColor)
+            return;
+
+        if (color != currentMission.targetColor)
+            return;
+
+        progress++;
+
+        if (progress >= currentMission.targetValue)
+            CompleteMission();
+    }
+    void CompleteMission()
+    {
+        MissionCompleted = true;
+        GameManager.Instance.WinGame();
     }
 }

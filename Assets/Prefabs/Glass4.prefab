@@ -251,6 +251,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   level: 4
+  color: 3
   canMerge: 0
 --- !u!114 &-9172519586059917324
 MonoBehaviour:

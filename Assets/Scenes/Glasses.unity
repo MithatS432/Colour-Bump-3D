@@ -287,7 +287,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 15
+  m_text: 20
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2100000, guid: 79459efec17a4d00a321bdcc27bbc385, type: 2}
@@ -573,7 +573,7 @@ MonoBehaviour:
   moveCount: 15
   health: 3
   scoreCount: 0
-  scorePerLevel: 0a0000000f00000014000000190000001e00000023000000280000002d0000003200000037000000
+  scorePerLevel: 1e00000023000000280000002d00000032000000370000003c00000041000000460000004b000000
   sfxSource: {fileID: 373184025}
   sfxOneShotSource: {fileID: 1024925139}
   chargeLoopClip: {fileID: 8300000, guid: 29efe8f489c851b4ea047fb8aafd0ef4, type: 3}
@@ -791,8 +791,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 0.012018301, y: 0.0060000024, z: 0.0039}
-  m_Center: {x: -0.0000024598558, y: 0.0000000012804954, z: 0.0019488486}
+  m_Size: {x: 0.011289943, y: 0.0060000024, z: 0.0039000001}
+  m_Center: {x: 0.00036171955, y: 0.0000000011689283, z: 0.0019488488}
 --- !u!1 &410087039
 GameObject:
   m_ObjectHideFlags: 0
@@ -1112,7 +1112,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: b10cb803ab8d95f4a9e4245a33ccf505, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 32.926003
+      value: 41.7
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: b10cb803ab8d95f4a9e4245a33ccf505, type: 3}
       propertyPath: m_LocalRotation.w
@@ -1217,7 +1217,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Random
+  m_text: 
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2100000, guid: e73a58f6e2794ae7b1b7e50b7fb811b0, type: 2}
@@ -1244,8 +1244,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 24
-  m_fontSizeBase: 24
+  m_fontSize: 14.69
+  m_fontSizeBase: 14.69
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -1319,11 +1319,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: b10cb803ab8d95f4a9e4245a33ccf505, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -18.4
+      value: -14.55
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: b10cb803ab8d95f4a9e4245a33ccf505, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -4.69
+      value: -5.4
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: b10cb803ab8d95f4a9e4245a33ccf505, type: 3}
       propertyPath: m_LocalPosition.z
@@ -1665,7 +1665,47 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   missionText: {fileID: 583485879}
-  missions: []
+  missions:
+  - type: 0
+    targetValue: 0
+    targetColor: 0
+    description: 
+  - type: 0
+    targetValue: 0
+    targetColor: 0
+    description: 
+  - type: 1
+    targetValue: 2
+    targetColor: 2
+    description: Merge Any
+  - type: 1
+    targetValue: 1
+    targetColor: 1
+    description: Merge Any
+  - type: 2
+    targetValue: 2
+    targetColor: 2
+    description: Merge 2 Green
+  - type: 0
+    targetValue: 500
+    targetColor: 0
+    description: Score 500
+  - type: 0
+    targetValue: 250
+    targetColor: 4
+    description: Score 250
+  - type: 2
+    targetValue: 1
+    targetColor: 5
+    description: Merge Yellow
+  - type: 1
+    targetValue: 2
+    targetColor: 2
+    description: Merge 2 Any
+  - type: 2
+    targetValue: 1
+    targetColor: 1
+    description: Merge White
 --- !u!1 &989269075
 GameObject:
   m_ObjectHideFlags: 0
@@ -2461,11 +2501,11 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -8679921383154817045, guid: b10cb803ab8d95f4a9e4245a33ccf505, type: 3}
       propertyPath: m_LocalScale.x
-      value: 0.49796
+      value: 0.99
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: b10cb803ab8d95f4a9e4245a33ccf505, type: 3}
       propertyPath: m_LocalScale.y
-      value: 0.49795997
+      value: 3.1
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: b10cb803ab8d95f4a9e4245a33ccf505, type: 3}
       propertyPath: m_LocalScale.z
@@ -2477,7 +2517,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: b10cb803ab8d95f4a9e4245a33ccf505, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -11.9
+      value: -7.6
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: b10cb803ab8d95f4a9e4245a33ccf505, type: 3}
       propertyPath: m_LocalPosition.z
