@@ -13,29 +13,18 @@ public class GlassCollision : MonoBehaviour
 
     private void OnCollisionEnter(Collision collision)
     {
-        Glass other = collision.gameObject.GetComponent<Glass>();
-        if (!other) return;
-
         if (Time.time - lastHitTime < hitCooldown) return;
         lastHitTime = Time.time;
 
-        GameManager.Instance.PlayHitSound();
-
-        Rigidbody otherRb = collision.gameObject.GetComponent<Rigidbody>();
-        if (!otherRb) return;
-
-        if (rb.mass > otherRb.mass)
-        {
-            Vector3 pushDir = (otherRb.position - rb.position).normalized;
-            float pushPower = Mathf.Clamp((rb.mass / otherRb.mass) * 0.15f, 0.1f, 0.3f);
-            otherRb.AddForce(pushDir * pushPower, ForceMode.VelocityChange);
-        }
+        if (collision.gameObject.GetComponent<Glass>())
+            GameManager.Instance.PlayHitSound();
     }
 
     private void OnTriggerEnter(Collider other)
     {
         if (other.CompareTag("Break"))
         {
+            GameManager.Instance.OnGlassBroken();
             GameManager.Instance.PlayBreakSound(transform.position);
             Destroy(gameObject);
         }

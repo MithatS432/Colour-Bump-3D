@@ -43,6 +43,7 @@ public class DragAndThrow : MonoBehaviour
 
     void Update()
     {
+        if (GameManager.Instance.IsGameOver) return;
         if (!isCurrent) return;
         if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject()) return;
 
@@ -123,29 +124,38 @@ public class DragAndThrow : MonoBehaviour
         GameManager.Instance.SetPower(finalPower);
     }
 
+
     void Throw()
     {
+        if (GameManager.Instance.IsGameOver) return;
+
         isCharging = false;
         isCurrent = false;
+
         rb.isKinematic = false;
         GetComponent<Glass>().canMerge = true;
 
         float raw = Mathf.Clamp01(holdTime / chargeTime);
         float t = powerCurve.Evaluate(raw);
         t = Mathf.Pow(t, powerSensitivity);
+
         float finalForce = Mathf.Lerp(minForce, maxForce, t);
 
         Vector3 dir = new Vector3(sideOffset, 0.15f, 1f).normalized;
+
         rb.linearVelocity = Vector3.zero;
         rb.angularVelocity = Vector3.zero;
 
-        float weight = GetComponent<Glass>().throwWeight;
-        rb.linearVelocity = dir * finalForce * weight;
+        rb.AddForce(dir * finalForce * 8f, ForceMode.Impulse);
 
         GameManager.Instance.StopChargeSound();
         GameManager.Instance.SetPower(0f);
+
+        GameManager.Instance.UseMove();
         GameManager.Instance.AllowNextSpawn();
     }
+
+
 
     void OnDisable()
     {

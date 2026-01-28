@@ -101,9 +101,9 @@ Rigidbody:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7562920071483225094}
   serializedVersion: 4
-  m_Mass: 6
-  m_Drag: 0.3
-  m_AngularDrag: 1
+  m_Mass: 8
+  m_Drag: 1.5
+  m_AngularDrag: 2.5
   m_CenterOfMass: {x: 0, y: 0, z: 0}
   m_InertiaTensor: {x: 1, y: 1, z: 1}
   m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
@@ -127,7 +127,7 @@ BoxCollider:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7562920071483225094}
-  m_Material: {fileID: 13400000, guid: 1f7da45f16af4c242bf4ec6c5c190de8, type: 2}
+  m_Material: {fileID: 13400000, guid: 3d8b5b226899c6e4dbf0e98be0ffe9d3, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -252,7 +252,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   level: 8
   canMerge: 0
-  throwWeight: 0.7
 --- !u!114 &8496266149697105311
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -265,11 +264,36 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 501abcb1351516d44b013eec52df74cd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  minForce: 5
-  maxForce: 12
-  chargeTime: 1.9
+  minForce: 3
+  maxForce: 8
+  chargeTime: 1.4
   sideSensitivity: 0.06
   maxSideOffset: 0.4
+  powerSensitivity: 1.5
+  powerCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 1
+      tangentMode: 69
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 2
+      outSlope: 2
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!114 &-6731929786824757383
 MonoBehaviour:
   m_ObjectHideFlags: 0
