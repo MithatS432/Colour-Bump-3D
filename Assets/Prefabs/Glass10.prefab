@@ -101,9 +101,9 @@ Rigidbody:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3871409110973965700}
   serializedVersion: 4
-  m_Mass: 8
-  m_Drag: 1.5
-  m_AngularDrag: 2.5
+  m_Mass: 1
+  m_Drag: 0.1
+  m_AngularDrag: 1
   m_CenterOfMass: {x: 0, y: 0, z: 0}
   m_InertiaTensor: {x: 1, y: 1, z: 1}
   m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
@@ -265,11 +265,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 501abcb1351516d44b013eec52df74cd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  minForce: 3
-  maxForce: 8
-  chargeTime: 1.4
-  sideSensitivity: 0.06
-  maxSideOffset: 0.4
+  minForce: 6
+  maxForce: 14
+  chargeTime: 1.8
+  minHoldTime: 0.15
+  sideSensitivity: 0.5
+  maxSideOffset: 0.5
+  sideSmoothSpeed: 10
   powerSensitivity: 1.5
   powerCurve:
     serializedVersion: 2
@@ -295,6 +297,8 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+  throwUpAngle: 0.22
+  forceMultiplier: 9
 --- !u!114 &870679086565068809
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -65,21 +65,27 @@ public class MissionManager : MonoBehaviour
     public void OnMergeColor(GlassColor color)
     {
         if (MissionCompleted) return;
+        if (currentMission.type != MissionType.MergeColor) return;
 
-        if (currentMission.type != MissionType.MergeColor)
-            return;
-
-        if (color != currentMission.targetColor)
-            return;
+        if (color != currentMission.targetColor) return;
 
         progress++;
 
         if (progress >= currentMission.targetValue)
             CompleteMission();
     }
+
     void CompleteMission()
     {
         MissionCompleted = true;
+
+        if (missionText != null)
+            missionText.text = "Mission Completed";
+
         GameManager.Instance.WinGame();
+    }
+    public MissionType CurrentMissionType
+    {
+        get { return currentMission.type; }
     }
 }

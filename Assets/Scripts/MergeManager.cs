@@ -4,14 +4,19 @@ public class MergeManager : MonoBehaviour
 {
     private bool merged;
 
-    void OnCollisionEnter(Collision collision)
+    private void OnCollisionEnter(Collision collision)
     {
         if (merged) return;
 
+        Rigidbody rb = GetComponent<Rigidbody>();
+        if (rb != null)
+        {
+            rb.isKinematic = true;
+        }
         Glass self = GetComponent<Glass>();
         Glass other = collision.gameObject.GetComponent<Glass>();
 
-        if (!other) return;
+        if (self == null || other == null) return;
         if (!self.canMerge || !other.canMerge) return;
         if (self.level != other.level) return;
 
@@ -19,11 +24,24 @@ public class MergeManager : MonoBehaviour
 
         merged = true;
 
-        Vector3 pos = (transform.position + other.transform.position) / 2f;
+        Vector3 pos = (transform.position + other.transform.position) * 0.5f;
 
         GameManager.Instance.AddScore(self.level);
-        MissionManager.Instance.OnMerge();
-        MissionManager.Instance.OnMergeColor(self.color);
+
+        MissionManager mm = MissionManager.Instance;
+
+        if (mm != null && !mm.MissionCompleted)
+        {
+            if (mm.CurrentMissionType == MissionType.MergeAny)
+            {
+                mm.OnMerge();
+            }
+            else if (mm.CurrentMissionType == MissionType.MergeColor)
+            {
+                mm.OnMergeColor(self.color);
+            }
+        }
+
         GameManager.Instance.PlayMergeSound();
         GameManager.Instance.PlayMergeVFX(pos);
 
@@ -37,7 +55,6 @@ public class MergeManager : MonoBehaviour
             GameObject g = Instantiate(next, pos, Quaternion.identity);
             Glass glass = g.GetComponent<Glass>();
             glass.canMerge = false;
-
         }
     }
 }

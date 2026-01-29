@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using System.Collections;
 
 public class GameManager : MonoBehaviour
 {
@@ -60,6 +61,9 @@ public class GameManager : MonoBehaviour
     // ================= SPAWN =================
     public void SpawnRandomGlass()
     {
+        if (MissionManager.Instance != null && MissionManager.Instance.MissionCompleted)
+            return;
+
         if (!canSpawn || IsGameOver) return;
         canSpawn = false;
 
@@ -70,9 +74,16 @@ public class GameManager : MonoBehaviour
 
     public void AllowNextSpawn()
     {
+        StartCoroutine(SpawnNextFrame());
+    }
+
+    IEnumerator SpawnNextFrame()
+    {
+        yield return null;
         canSpawn = true;
         SpawnRandomGlass();
     }
+
 
     public GameObject GetNextGlass(int level)
     {
@@ -105,7 +116,8 @@ public class GameManager : MonoBehaviour
         if (IsGameOver) return;
 
         IsGameOver = true;
-        sfxSource.PlayOneShot(winClip);
+        StopChargeSound();
+        sfxOneShotSource.PlayOneShot(winClip);
         Invoke(nameof(RestartGame), 2f);
     }
 
@@ -138,9 +150,23 @@ public class GameManager : MonoBehaviour
     void LoseGame()
     {
         IsGameOver = true;
-        sfxSource.PlayOneShot(loseClip);
+        StopChargeSound();
+        sfxOneShotSource.PlayOneShot(loseClip);
         Invoke(nameof(RestartGame), 2f);
     }
+    public void LoseGameByLimit()
+    {
+        if (IsGameOver) return;
+
+        IsGameOver = true;
+
+        if (sfxOneShotSource != null && loseClip != null)
+            sfxOneShotSource.PlayOneShot(loseClip);
+
+        Invoke(nameof(RestartGame), 2f);
+    }
+
+
 
     public void AddScore(int level)
     {
