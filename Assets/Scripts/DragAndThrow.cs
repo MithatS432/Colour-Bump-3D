@@ -5,62 +5,67 @@ using System.Collections;
 public class DragAndThrow : MonoBehaviour
 {
     [Header("Force")]
-    public float minForce = 6f;
-    public float maxForce = 14f;
+    public float minForce = 3f;
+    public float maxForce = 10f;
 
     [Header("Charge")]
     public float chargeTime = 2f;
-    public float minHoldTime = 0.2f;
+    public float minHoldTime = 0.3f; // Minimum basma süresi arttırıldı
 
     [Header("Side Movement")]
-    public float sideSensitivity = 0.8f;
-    public float maxSideOffset = 0.7f;
-    public float sideSmoothSpeed = 15f;
+    public float sideSensitivity = 1.2f;
+    public float maxSideOffset = 1.5f;
+    public float moveSpeed = 8f; // Doğrudan hareket hızı
 
     [Header("Power Bar")]
-    public float powerSensitivity = 2f;
+    public float powerSensitivity = 3f; // Daha yavaş güç artışı
     public AnimationCurve powerCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
 
     [Header("Throw Physics")]
-    public float throwUpAngle = 0.3f;
-    public float forceMultiplier = 12f;
-    public float drag = 0.5f; // Hava sürtünmesi
+    public float throwUpAngle = 0.25f; // Daha az yukarı açı
+    public float forceMultiplier = 0.85f; // Genel güç çarpanı azaltıldı
+    public float drag = 0.5f; // Hava sürtünmesi arttırıldı
 
     // PRIVATE VARIABLES
     private float holdTime;
-    private float targetSideOffset;
-    private float currentSideOffset;
+    private float targetX; // Hedef X pozisyonu
     private bool isCharging;
     private bool isCurrent;
-    private bool touchStartedOnGlass = false;
+    private bool isDragging = false;
 
     private Vector3 startPos;
     private Rigidbody rb;
     private Camera cam;
-    private Vector2 touchStartPos;
-    private Vector3 velocityBeforeThrow;
+    private float initialTouchX;
+    private float minX;
+    private float maxX;
 
     void Start()
     {
         rb = GetComponent<Rigidbody>();
         rb.isKinematic = true;
         rb.interpolation = RigidbodyInterpolation.Interpolate;
-        rb.linearDamping = drag; // Sürtünme ekle
+        rb.linearDamping = 0.5f; // Drag ile senkronize
         startPos = transform.position;
         cam = Camera.main;
+
+        // Hareket limitlerini hesapla
+        minX = startPos.x - maxSideOffset;
+        maxX = startPos.x + maxSideOffset;
+        targetX = startPos.x;
     }
 
     public void SetAsCurrent()
     {
         isCurrent = true;
         isCharging = false;
+        isDragging = false;
         holdTime = 0f;
-        targetSideOffset = 0f;
-        currentSideOffset = 0f;
-        touchStartedOnGlass = false;
         startPos = transform.position;
+        targetX = startPos.x;
+        minX = startPos.x - maxSideOffset;
+        maxX = startPos.x + maxSideOffset;
 
-        // Rigidbody sıfırla
         if (rb != null)
         {
             rb.isKinematic = true;
@@ -76,16 +81,15 @@ public class DragAndThrow : MonoBehaviour
         if (!isCurrent) return;
         if (GameManager.Instance.IsGameOver) return;
 
-        // YUMUŞAK HAREKET
-        float smoothTime = Time.deltaTime * sideSmoothSpeed;
-        currentSideOffset = Mathf.Lerp(currentSideOffset, targetSideOffset, smoothTime);
-
-        // POZİSYONU GÜNCELLE (teleport yok)
-        Vector3 newPos = startPos + Vector3.right * currentSideOffset;
-        transform.position = Vector3.Lerp(transform.position, newPos, smoothTime);
+        // POZİSYON GÜNCELLEME - Yumuşak hareket
+        if (isDragging || Mathf.Abs(transform.position.x - targetX) > 0.01f)
+        {
+            float newX = Mathf.Lerp(transform.position.x, targetX, Time.deltaTime * moveSpeed);
+            transform.position = new Vector3(newX, transform.position.y, transform.position.z);
+        }
 
         // KONTROLLER
-        if (Application.isEditor)
+        if (Application.isEditor || Application.platform == RuntimePlatform.WindowsEditor)
             HandleMouse();
         else
             HandleTouch();
@@ -96,61 +100,56 @@ public class DragAndThrow : MonoBehaviour
     {
         if (Input.touchCount == 0)
         {
-            if (touchStartedOnGlass)
+            if (isDragging && isCharging)
             {
-                touchStartedOnGlass = false;
+                Throw();
             }
+            isDragging = false;
             return;
         }
 
         Touch touch = Input.GetTouch(0);
+        Vector3 touchWorldPos = cam.ScreenToWorldPoint(new Vector3(touch.position.x, touch.position.y, cam.WorldToScreenPoint(transform.position).z));
 
         switch (touch.phase)
         {
             case TouchPhase.Began:
                 if (IsTouchOnGlass(touch.position))
                 {
-                    touchStartedOnGlass = true;
-                    touchStartPos = touch.position;
+                    isDragging = true;
+                    initialTouchX = touchWorldPos.x;
                     StartCharge();
                 }
                 break;
 
             case TouchPhase.Moved:
-                if (isCharging && touchStartedOnGlass)
-                {
-                    holdTime += Time.deltaTime;
-
-                    // GERÇEKÇİ YAN HAREKET
-                    float deltaX = (touch.position.x - touchStartPos.x) / Screen.width * 100f;
-                    targetSideOffset = Mathf.Clamp(deltaX * sideSensitivity, -maxSideOffset, maxSideOffset);
-
-                    UpdatePower();
-                }
-                break;
-
             case TouchPhase.Stationary:
-                if (isCharging && touchStartedOnGlass)
+                if (isDragging && isCharging)
                 {
                     holdTime += Time.deltaTime;
+
+                    // DOĞRUDAN WORLD POZİSYONU İLE HAREKET
+                    float deltaX = touchWorldPos.x - initialTouchX;
+                    float newTargetX = startPos.x + (deltaX * sideSensitivity);
+                    targetX = Mathf.Clamp(newTargetX, minX, maxX);
+
                     UpdatePower();
                 }
                 break;
 
             case TouchPhase.Ended:
             case TouchPhase.Canceled:
-                if (isCharging && touchStartedOnGlass)
+                if (isDragging && isCharging)
                 {
                     Throw();
                 }
-                touchStartedOnGlass = false;
+                isDragging = false;
                 break;
         }
     }
 
     bool IsTouchOnGlass(Vector2 touchPos)
     {
-        // Collider bazlı kontrol (daha doğru)
         Ray ray = cam.ScreenPointToRay(touchPos);
         RaycastHit hit;
 
@@ -165,30 +164,33 @@ public class DragAndThrow : MonoBehaviour
     #region MOUSE CONTROLS
     void HandleMouse()
     {
+        Vector3 mouseWorldPos = cam.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, cam.WorldToScreenPoint(transform.position).z));
+
         if (Input.GetMouseButtonDown(0))
         {
             if (IsPointerOnThisGlass(Input.mousePosition))
             {
-                touchStartedOnGlass = true;
-                touchStartPos = Input.mousePosition;
+                isDragging = true;
+                initialTouchX = mouseWorldPos.x;
                 StartCharge();
             }
         }
 
-        if (Input.GetMouseButton(0) && isCharging && touchStartedOnGlass)
+        if (Input.GetMouseButton(0) && isDragging && isCharging)
         {
             holdTime += Time.deltaTime;
 
-            float deltaX = (Input.mousePosition.x - touchStartPos.x) / Screen.width * 100f;
-            targetSideOffset = Mathf.Clamp(deltaX * sideSensitivity, -maxSideOffset, maxSideOffset);
+            float deltaX = mouseWorldPos.x - initialTouchX;
+            float newTargetX = startPos.x + (deltaX * sideSensitivity);
+            targetX = Mathf.Clamp(newTargetX, minX, maxX);
 
             UpdatePower();
         }
 
-        if (Input.GetMouseButtonUp(0) && isCharging && touchStartedOnGlass)
+        if (Input.GetMouseButtonUp(0) && isDragging && isCharging)
         {
             Throw();
-            touchStartedOnGlass = false;
+            isDragging = false;
         }
     }
 
@@ -237,6 +239,7 @@ public class DragAndThrow : MonoBehaviour
 
         isCharging = false;
         isCurrent = false;
+        isDragging = false;
 
         // FİZİĞİ AKTİF ET
         rb.isKinematic = false;
@@ -246,40 +249,23 @@ public class DragAndThrow : MonoBehaviour
         float t = Mathf.Pow(powerCurve.Evaluate(raw), powerSensitivity);
         float finalForce = Mathf.Lerp(minForce, maxForce, t);
 
-        // YÖN HESAPLA (daha doğal)
-        Vector3 dir = new Vector3(currentSideOffset * 1.5f, throwUpAngle, 1f).normalized;
+        // YÖN HESAPLA - Yan hareket dahil
+        float sideOffset = transform.position.x - startPos.x;
+        Vector3 dir = new Vector3(sideOffset * 0.8f, throwUpAngle, 1f).normalized;
 
-        // KADEMELİ GÜÇ UYGULA (anlık değil)
-        StartCoroutine(ApplyForceOverTime(dir, finalForce));
+        // ANLIK GÜÇ UYGULA (Fiziksel)
+        rb.AddForce(dir * finalForce * forceMultiplier, ForceMode.VelocityChange);
 
         GetComponent<Glass>().canMerge = true;
         GameManager.Instance.StopChargeSound();
         GameManager.Instance.SetPower(0f);
         GameManager.Instance.UseMove();
 
-        // YENİ BARDAK (gecikmeli)
-        Invoke(nameof(AllowNextSpawn), 0.5f);
-    }
+        // LİMİT KONTROLÜNÜ BAŞLAT
+        GetComponent<Glass>().StartLimitCheck(0.9f);
 
-    // KADEMELİ GÜÇ UYGULAMA (ışınlanma efekti yok)
-    IEnumerator ApplyForceOverTime(Vector3 direction, float force)
-    {
-        float duration = 0.3f;
-        float elapsed = 0f;
-
-        while (elapsed < duration)
-        {
-            float t = elapsed / duration;
-            float currentForce = Mathf.Lerp(0f, force, t);
-
-            rb.AddForce(direction * currentForce * forceMultiplier * Time.deltaTime * 50f, ForceMode.Force);
-
-            elapsed += Time.deltaTime;
-            yield return null;
-        }
-
-        // Limit kontrolü başlat
-        GetComponent<Glass>().StartLimitCheck(1.5f);
+        // YENİ BARDAK
+        Invoke(nameof(AllowNextSpawn), 0.3f);
     }
 
     void AllowNextSpawn()
@@ -290,8 +276,7 @@ public class DragAndThrow : MonoBehaviour
     void CancelCharge()
     {
         isCharging = false;
-        touchStartedOnGlass = false;
-        targetSideOffset = 0f;
+        isDragging = false;
         GameManager.Instance.StopChargeSound();
         GameManager.Instance.SetPower(0f);
     }

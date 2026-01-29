@@ -8,11 +8,6 @@ public class MergeManager : MonoBehaviour
     {
         if (merged) return;
 
-        Rigidbody rb = GetComponent<Rigidbody>();
-        if (rb != null)
-        {
-            rb.isKinematic = true;
-        }
         Glass self = GetComponent<Glass>();
         Glass other = collision.gameObject.GetComponent<Glass>();
 
@@ -20,16 +15,18 @@ public class MergeManager : MonoBehaviour
         if (!self.canMerge || !other.canMerge) return;
         if (self.level != other.level) return;
 
+        // Çift birleşme önleme
         if (GetInstanceID() > other.GetInstanceID()) return;
 
         merged = true;
 
+        // Orta nokta hesaplama
         Vector3 pos = (transform.position + other.transform.position) * 0.5f;
 
+        // Skor ve mission güncelleme
         GameManager.Instance.AddScore(self.level);
 
         MissionManager mm = MissionManager.Instance;
-
         if (mm != null && !mm.MissionCompleted)
         {
             if (mm.CurrentMissionType == MissionType.MergeAny)
@@ -42,19 +39,35 @@ public class MergeManager : MonoBehaviour
             }
         }
 
+        // Efektler
         GameManager.Instance.PlayMergeSound();
         GameManager.Instance.PlayMergeVFX(pos);
 
+        // Yeni seviye bardağı oluştur
         GameObject next = GameManager.Instance.GetNextGlass(self.level + 1);
-
-        Destroy(other.gameObject);
-        Destroy(gameObject);
 
         if (next != null)
         {
             GameObject g = Instantiate(next, pos, Quaternion.identity);
             Glass glass = g.GetComponent<Glass>();
+
+            // Yeni bardak başlangıçta birleşemez
             glass.canMerge = false;
+
+            // Rigidbody kontrolü
+            Rigidbody rb = g.GetComponent<Rigidbody>();
+            if (rb != null)
+            {
+                rb.isKinematic = false; // Fizik aktif
+                rb.linearVelocity = Vector3.zero;
+                rb.angularVelocity = Vector3.zero;
+            }
         }
+
+        GameManager.Instance.OnGlassMerged();
+
+        // Objeleri yok et
+        Destroy(other.gameObject);
+        Destroy(gameObject);
     }
 }

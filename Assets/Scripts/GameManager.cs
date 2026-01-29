@@ -84,6 +84,22 @@ public class GameManager : MonoBehaviour
         SpawnRandomGlass();
     }
 
+    // ================= BİRLEŞME SONRASI SPAWN =================
+    public void OnGlassMerged()
+    {
+        // Birleşme sonrası yeni bardak spawn et
+        StartCoroutine(SpawnAfterMerge());
+    }
+
+    IEnumerator SpawnAfterMerge()
+    {
+        // Birleşme animasyonu için bekle
+        yield return new WaitForSeconds(0.4f);
+
+        // Yeni bardak spawn et
+        canSpawn = true;
+        SpawnRandomGlass();
+    }
 
     public GameObject GetNextGlass(int level)
     {
@@ -154,6 +170,7 @@ public class GameManager : MonoBehaviour
         sfxOneShotSource.PlayOneShot(loseClip);
         Invoke(nameof(RestartGame), 2f);
     }
+
     public void LoseGameByLimit()
     {
         if (IsGameOver) return;
@@ -165,8 +182,6 @@ public class GameManager : MonoBehaviour
 
         Invoke(nameof(RestartGame), 2f);
     }
-
-
 
     public void AddScore(int level)
     {

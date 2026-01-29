@@ -101,9 +101,9 @@ Rigidbody:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5880919643556925205}
   serializedVersion: 4
-  m_Mass: 1
-  m_Drag: 0.1
-  m_AngularDrag: 1
+  m_Mass: 30
+  m_Drag: 1.2
+  m_AngularDrag: 1.2
   m_CenterOfMass: {x: 0, y: 0, z: 0}
   m_InertiaTensor: {x: 1, y: 1, z: 1}
   m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
@@ -253,6 +253,8 @@ MonoBehaviour:
   level: 5
   color: 4
   canMerge: 0
+  sizeMultiplier: 1
+  throwWeight: 1
 --- !u!114 &-8643199257427001078
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -265,13 +267,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 501abcb1351516d44b013eec52df74cd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  minForce: 6
-  maxForce: 14
+  minForce: 2
+  maxForce: 6
   chargeTime: 1.8
   minHoldTime: 0.15
   sideSensitivity: 0.5
   maxSideOffset: 0.5
-  sideSmoothSpeed: 10
+  moveSpeed: 8
   powerSensitivity: 1.5
   powerCurve:
     serializedVersion: 2
@@ -297,8 +299,9 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  throwUpAngle: 0.22
-  forceMultiplier: 9
+  throwUpAngle: 0.15
+  forceMultiplier: 3
+  drag: 0.3
 --- !u!114 &5177403976801929596
 MonoBehaviour:
   m_ObjectHideFlags: 0

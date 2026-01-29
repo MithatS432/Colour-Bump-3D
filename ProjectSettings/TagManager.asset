@@ -17,6 +17,7 @@ TagManager:
   - Break
   - FxTemporaire
   - GlassLimit
+  - Ground
   layers:
   - Default
   - TransparentFX

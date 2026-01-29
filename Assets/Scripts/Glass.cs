@@ -10,12 +10,14 @@ public enum GlassColor
     Brown,
     Yellow
 }
+
 public enum MissionType
 {
     Score,
     MergeAny,
     MergeColor
 }
+
 [System.Serializable]
 public class Mission
 {
@@ -24,7 +26,6 @@ public class Mission
     public GlassColor targetColor;
     public string description;
 }
-
 
 public class Glass : MonoBehaviour
 {
@@ -39,6 +40,7 @@ public class Glass : MonoBehaviour
     private bool reachedLimit = false;
     private bool limitCheckStarted = false;
     private Rigidbody rb;
+    private bool isStatic = false;
 
     void Start()
     {
@@ -50,8 +52,8 @@ public class Glass : MonoBehaviour
         if (rb != null)
         {
             rb.mass = throwWeight * sizeMultiplier;
-            rb.linearDamping = 0.5f;
-            rb.angularDamping = 0.5f;
+            rb.linearDamping = 0.8f; // Daha fazla sürtünme
+            rb.angularDamping = 0.8f; // Daha fazla dönüş sürtünmesi
         }
 
         StartCoroutine(EnableMerge());
@@ -73,46 +75,88 @@ public class Glass : MonoBehaviour
 
     IEnumerator LimitCheckCoroutine(float delay)
     {
-        // ÖNCE BEKLE
+        // İLK BEKLEME
         yield return new WaitForSeconds(delay);
 
-        // HALA HAREKET EDİYOR MU KONTROL ET
-        while (rb != null && rb.linearVelocity.magnitude > 0.1f)
+        // HAREKET KONTROLÜ
+        float checkDuration = 3f; // Maksimum kontrol süresi
+        float elapsed = 0f;
+
+        while (elapsed < checkDuration)
         {
-            yield return new WaitForSeconds(0.5f);
+            // Hız kontrolü
+            if (rb != null)
+            {
+                float speed = rb.linearVelocity.magnitude;
+
+                // Eğer durdu kontrol et
+                if (speed < 0.1f && !isStatic)
+                {
+                    isStatic = true;
+                    yield return new WaitForSeconds(0.5f); // Son kontrol için bekle
+
+                    // Hala duruyor mu?
+                    if (rb.linearVelocity.magnitude < 0.1f)
+                    {
+                        break; // Tamamen durdu
+                    }
+                    else
+                    {
+                        isStatic = false; // Tekrar hareket etti
+                    }
+                }
+            }
+
+            elapsed += Time.deltaTime;
+            yield return new WaitForSeconds(0.2f);
         }
 
-        // DURDU VE LİMİTE ULAŞMADIYSA KAYBET
-        if (!reachedLimit && GameManager.Instance != null && !GameManager.Instance.IsGameOver)
+        // SONUÇ KONTROLÜ
+        if (!reachedLimit)
         {
-            Debug.Log("Bardak limiti geçemedi! Oyun kaybediliyor...");
-            GameManager.Instance.LoseGameByLimit();
+            // Limiti geçemedi - Oyunu kaybet
+            if (GameManager.Instance != null && !GameManager.Instance.IsGameOver)
+            {
+                Debug.Log($"[{gameObject.name}] Bardak limiti geçemedi! Oyun kaybediliyor...");
+                GameManager.Instance.LoseGameByLimit();
+            }
+        }
+        else
+        {
+            Debug.Log($"[{gameObject.name}] Bardak başarıyla limiti geçti!");
         }
     }
 
-    // LimitTrigger'a değdiğinde ÇAĞRILACAK
+    // LimitTrigger'a değdiğinde çağrılır
     public void OnReachedLimit()
     {
-        reachedLimit = true;
-        Debug.Log("Bardak limiti geçti!");
+        if (reachedLimit) return; // Tekrar etme
 
-        // OPTİONAL: Limit geçince fizik değiştir
+        reachedLimit = true;
+        Debug.Log($"[{gameObject.name}] Limit geçildi! ✓");
+
+        // Limit geçtikten sonra fizik değişiklikleri
         if (rb != null)
         {
-            rb.linearDamping = 1f; // Daha çok sürtünme
+            rb.linearDamping = 1.5f; // Daha hızlı yavaşlama
         }
-    }
-    public void ReachedLimit()
-    {
-        reachedLimit = true;
     }
 
     void OnTriggerEnter(Collider other)
     {
-        // LIMIT TAG'İNİ KONTROL ET
+        // GlassLimit tag kontrolü
         if (other.CompareTag("GlassLimit"))
         {
             OnReachedLimit();
+        }
+    }
+
+    void OnCollisionEnter(Collision collision)
+    {
+        // Yere çarptığında hafif zıplama ekle (daha doğal)
+        if (collision.gameObject.CompareTag("Ground") && rb != null)
+        {
+            rb.linearVelocity = new Vector3(rb.linearVelocity.x * 0.8f, rb.linearVelocity.y * 0.3f, rb.linearVelocity.z * 0.8f);
         }
     }
 }

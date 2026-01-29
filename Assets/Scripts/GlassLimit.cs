@@ -7,8 +7,8 @@ public class GlassLimit : MonoBehaviour
         Glass glass = other.GetComponent<Glass>();
         if (glass != null)
         {
-            glass.ReachedLimit();
+            glass.OnReachedLimit();
+            Debug.Log($"GlassLimit: {other.gameObject.name} limiti geçti!");
         }
     }
-
 }
